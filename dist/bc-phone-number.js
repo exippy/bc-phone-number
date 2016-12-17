@@ -1,10 +1,8 @@
 'use strict';
-
-var bcCountries = require('bc-countries');
-var angular = require('angular');
-
-global.angular = angular;
-require('./templates.js');
+import bcCountries from 'bc-countries';
+import 'angular';
+import './templates.js';
+import 'angular-ui-bootstrap';
 
 angular.module('bcPhoneNumber', ['bcPhoneNumberTemplates', 'ui.bootstrap'])
 .service('bcPhoneNumber', function() {
