@@ -11,7 +11,6 @@ var concat        = require('gulp-concat');
 var rename        = require('gulp-rename');
 var uglify        = require('gulp-uglify');
 var jscs          = require('gulp-jscs');
-
 var childProcess = require('child_process');
 var wiredep      = require('wiredep').stream;
 var merge        = require('merge-stream');
@@ -34,39 +33,12 @@ function executeTask(command) {
     execute(command, callback);
   };
 }
-
-gulp.task('browserify', executeTask('grunt browserify'));
-
-gulp.task('deploy', executeTask('sh demo/gh-pages.sh'));
-
 gulp.task('test', executeTask('grunt karma:unit'));
-
-gulp.task('server:connect', function() {
-  connect.server({
-    livereload: true,
-    fallback: 'demo/index.html',
-    host: 'localhost',
-    port: 8080,
-    root: ['demo/', '.']
-  });
-});
-
-gulp.task('server:reload', function() {
-  return gulp.src(GLOBS.assets)
-    .pipe(changed(GLOBS.assets))
-    .pipe(connect.reload());
-});
-
-gulp.task('refresh', function(callback) {
-  runSequence('build', 'server:reload', callback);
-});
-
 gulp.task('lint', function() {
   return gulp.src('{src/*.js,test/*.js,*.js}')
     .pipe(jscs())
     .pipe(jscs.reporter());
 });
-
 gulp.task('build:css', function() {
   return gulp.src('src/bc-phone-number.css')
     .pipe(gulp.dest('dist/css/'))
@@ -74,26 +46,12 @@ gulp.task('build:css', function() {
     .pipe(rename('bc-phone-number.min.css'))
     .pipe(gulp.dest('dist/css/'));
 });
-
 gulp.task('uglify', function() {
   return gulp.src('dist/js/bc-phone-number.js')
     .pipe(uglify())
     .pipe(rename('bc-phone-number.min.js'))
     .pipe(gulp.dest('dist/js/'));
 });
-
-gulp.task('wiredep', function() {
-  var index = gulp.src('demo/index.html')
-    .pipe(wiredep({ignorePath: '../'}))
-    .pipe(gulp.dest('demo/'));
-
-  var test = gulp.src('test/karma.conf.js')
-    .pipe(wiredep({devDependencies: true}))
-    .pipe(gulp.dest('test/'));
-
-  return merge(index, test);
-});
-
 gulp.task('inline-templates', function() {
   return gulp.src('src/*.html')
     .pipe(templateCache({
@@ -101,21 +59,20 @@ gulp.task('inline-templates', function() {
       module: 'bcPhoneNumberTemplates',
       root: 'bc-phone-number'
     }))
-    .pipe(gulp.dest('build/js/'));
+    .pipe(gulp.dest('src/'));
 });
-
-gulp.task('watch', function() {
-  gulp.watch([GLOBS.assets], ['refresh']);
+gulp.task('copy-to-dist', function() {
+  return gulp.src(['src/*.js'])
+    .pipe(gulp.dest('dist/'));
 });
-
 gulp.task('clean', function() {
-  return del(['build/']);
+  return del(['dist/']);
 });
 
 gulp.task('build', function(callback) {
-  runSequence(['inline-templates', 'wiredep', 'build:css', 'lint'], 'browserify', 'uglify', 'clean', callback);
+  runSequence(['inline-templates', 'build:css', 'lint'], 'copy-to-dist', 'uglify', callback);
 });
 
 gulp.task('default', function(callback) {
-  runSequence('build', 'server:connect', 'watch', callback);
+  runSequence('build', callback);
 });

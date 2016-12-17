@@ -4,7 +4,7 @@ var bcCountries = require('bc-countries');
 var angular = require('angular');
 
 global.angular = angular;
-
+require('./templates.js');
 
 angular.module('bcPhoneNumber', ['bcPhoneNumberTemplates', 'ui.bootstrap'])
 .service('bcPhoneNumber', function() {
